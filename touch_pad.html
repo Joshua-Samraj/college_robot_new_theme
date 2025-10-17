@@ -27,6 +27,8 @@
             margin: 0;
             overflow: hidden;
             user-select: none; /* Prevents text selection on rapid clicks */
+            /* Added for the 3D animation */
+            perspective: 1200px; 
         }
         
         /* General button styling for navigation/toggles */
@@ -72,6 +74,26 @@
                 right: 10px;
             }
         }
+        
+        /* === NEW ANIMATION STYLES START HERE === */
+        
+        /* 1. Define the new rotation animation */
+        @keyframes rotateIn3D {
+            from {
+                opacity: 0;
+                transform: scale(0.6) rotateX(90deg) rotateY(-90deg);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) rotateX(0deg) rotateY(0deg);
+            }
+        }
+
+        /* 2. Define a simple fade-in for other elements */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
 
         .gamepad-container {
             display: flex;
@@ -83,7 +105,22 @@
             background: #2c2c2e;
             border-radius: 30px;
             box-shadow: 0 15px 30px var(--shadow-color), inset 0 0 15px #111;
+
+            /* 3. Apply the new animation to the whole controller */
+            opacity: 0; /* Start hidden */
+            transform-style: preserve-3d; /* Crucial for 3D effect */
+            animation: rotateIn3D 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            animation-delay: 0.1s;
         }
+
+        /* 4. Apply fade-in to surrounding elements */
+        #command-display, .nav-button {
+            opacity: 0;
+            animation: fadeIn 1s ease-out forwards;
+            animation-delay: 1s; /* Delay until controller is in place */
+        }
+        
+        /* === NEW ANIMATION STYLES END HERE === */
 
         /* Container for the D-pad and its side buttons */
         .d-pad-area {
@@ -298,22 +335,20 @@
 </head>
 <body>
     <a href="index.html" class="nav-button back-button">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:20px; height:20px;">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
         </svg>
         Back
     </a>
     
-    <!-- NEW: Fullscreen Toggle Button -->
     <button id="fullscreenToggle" class="nav-button fullscreen-toggle-button">
         <span id="fullscreenText">Full Screen</span>
-        <svg id="fullscreenIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+        <svg id="fullscreenIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:20px; height:20px;">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" />
         </svg>
     </button>
     
     <div class="gamepad-container">
-        <!-- D-pad area -->
         <div class="d-pad-area">
             <button id="left-most" data-command="1" class="side-btn">«</button>
             <div class="d-pad">
@@ -321,7 +356,6 @@
                 <div id="down" data-command="R" class="d-pad-btn">▼</div>
                 <div id="left" data-command="2" class="d-pad-btn">◀</div>
                 <div id="right" data-command="4" class="d-pad-btn">▶</div>
-                <!-- <div id="center"></div> -->
             </div>
             <button id="right-most" data-command="5" class="side-btn">»</button>
         </div>
@@ -352,7 +386,6 @@
 
         function updateFullscreenButton(isFull) {
             fullscreenText.textContent = isFull ? 'Exit Full Screen' : 'Full Screen';
-            // Use different icons for enter/exit fullscreen
             fullscreenIcon.innerHTML = isFull ? 
                 `<path stroke-linecap="round" stroke-linejoin="round" d="M9 9l6-6m0 0l-6 6M9 9V3m0 6H3m-3.75 3.75h4.5m0-4.5h-4.5m4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" />` : 
                 `<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" />`;
@@ -397,29 +430,19 @@
         const commandDisplay = document.getElementById('last-command');
         let previousCommand = null;
         let controlEnabled = false;
-        // Base API URL - the endpoint will be appended to this.
         const BASE_URL = 'http://127.0.0.1:5000'; 
 
-        /**
-         * Determines the API endpoint based on the button's ID/purpose and sends the command.
-         * Motor Commands: D-Pad, Left-Most, Right-Most (1, 2, 3, 4, 5)
-         * Face/Emotion Commands: Action Buttons (H, B, r)
-         * Control Commands: Start/Stop (s) - Routed to the default command endpoint
-         */
         async function sendCommand(command) {
-            if (command === previousCommand) return; // Prevent spamming the same command
+            if (command === previousCommand) return;
 
             let endpoint;
             
-            // Motor Commands: '1', '2', '3', '4', '5', 'r' (if 'r' is a run command on the motor)
             if (['1', '2', '3', '4', '5','R'].includes(command) ) {
                 endpoint = '/api/motor/command';
-            // Emotion/Face Commands: 'H', 'B', 'r'
             } else if (['H', 'B','r'].includes(command) ) {
                 endpoint = '/api/face/command';
-            // Control Commands: 's' (Start/Stop) - Routed to the default general command
             } else if (command === 's') {
-                 endpoint = '/api/command'; 
+                endpoint = '/api/command'; 
             } else {
                 console.warn(`Unknown command type for command: ${command}`);
                 return;
@@ -488,7 +511,6 @@
                     sendCommand(command);
                 } else {
                     console.warn("Control is not enabled. Press 'Start' first.");
-                    // Flash the display to indicate disabled state
                     const originalText = commandDisplay.textContent;
                     commandDisplay.textContent = "DISABLED";
                     commandDisplay.style.color = "#dc3545";
@@ -499,14 +521,12 @@
                 }
             };
 
-            // Use mousedown/touchstart for immediate and repetitive commands
             button.addEventListener('mousedown', sendBtnCommand);
             button.addEventListener('touchstart', (e) => {
                 e.preventDefault(); 
                 sendBtnCommand();
             });
 
-            // Reset previous command on mouseup/touchend to allow re-sending the same command after release
             const resetCommandOnRelease = () => resetPreviousCommand();
             button.addEventListener('mouseup', resetCommandOnRelease);
             button.addEventListener('touchend', resetCommandOnRelease);

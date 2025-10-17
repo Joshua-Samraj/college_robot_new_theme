@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Voice Assistant</title>
+    <title>AI Voice Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -18,51 +18,47 @@
             70% { box-shadow: 0 0 0 25px rgba(239, 68, 68, 0); }
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
-        #chat-window::-webkit-scrollbar {
-            width: 6px;
-        }
-        #chat-window::-webkit-scrollbar-track {
-            background: #1f2937;
-        }
-        #chat-window::-webkit-scrollbar-thumb {
-            background: #4b5563;
-            border-radius: 3px;
-        }
-        #chat-window::-webkit-scrollbar-thumb:hover {
-            background: #6b7280;
-        }
+        #chat-window::-webkit-scrollbar { width: 6px; }
+        #chat-window::-webkit-scrollbar-track { background: #1f2937; }
+        #chat-window::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
+        #chat-window::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideInFromLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideInFromRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        header, #chat-window, .suggestions-container, .mic-container { animation: fadeInUp 0.7s ease-out forwards; opacity: 0; }
+        header { animation-delay: 0.1s; }
+        #chat-window { animation-delay: 0.2s; }
+        .suggestions-container { animation-delay: 0.3s; }
+        .mic-container { animation-delay: 0.4s; }
+        .bot-message { animation: slideInFromLeft 0.5s ease-out forwards; }
+        .user-message { animation: slideInFromRight 0.5s ease-out forwards; }
+        .interactive-button { transition: transform 0.2s ease-in-out, background-color 0.2s; }
+        .interactive-button:hover { transform: scale(1.05); }
+        .interactive-button:active { transform: scale(0.95); }
+        #micButton { animation: breathe 2.5s infinite ease-in-out; }
     </style>
 </head>
 <body class="bg-gray-900 text-white flex flex-col h-screen">
 
     <div class="container mx-auto p-4 flex-grow flex flex-col max-w-3xl">
         <header class="relative text-center mb-4 p-4">
-            <a href="index.html" class="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-sm font-medium py-2 px-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                </svg>
+            <a href="index.html" class="interactive-button absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-sm font-medium py-2 px-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
                 Back
             </a>
-
-            <button id="fullscreenToggle" class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-sm font-medium py-2 px-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
+            <button id="fullscreenToggle" class="interactive-button absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-sm font-medium py-2 px-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
                 <span id="fullscreenText">Full Screen</span>
-                <svg id="fullscreenIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" />
-                </svg>
+                <svg id="fullscreenIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" /></svg>
             </button>
-            
-            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
-                Gemini Voice Assistant
-            </h1>
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">AI Voice Assistant</h1>
             <p id="status" class="text-gray-400 mt-2 h-6 transition-all">Click the mic to start a conversation</p>
         </header>
 
         <div id="chat-window" class="flex-1 bg-gray-800 rounded-lg shadow-inner p-4 overflow-y-auto mb-4 border border-gray-700">
-            <div class="flex items-start gap-3 mb-4">
+            <div class="flex items-start gap-3 mb-4 bot-message">
                 <div class="bg-blue-500 p-2 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z" />
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z" /></svg>
                 </div>
                 <div class="bg-gray-700 p-3 rounded-lg max-w-xs md:max-w-md">
                     <p class="text-sm">Hello! How can I help you today?</p>
@@ -70,257 +66,561 @@
             </div>
         </div>
 
-        <div class="mb-4">
+        <div class="suggestions-container mb-4">
             <h3 class="text-sm font-semibold text-gray-400 mb-2 text-center">Or try one of these:</h3>
             <div class="flex flex-wrap justify-center gap-2">
-                <button class="custom-question bg-gray-700 hover:bg-gray-600 text-xs font-medium py-2 px-3 rounded-full transition-colors">What's the weather like today?</button>
-                <button class="custom-question bg-gray-700 hover:bg-gray-600 text-xs font-medium py-2 px-3 rounded-full transition-colors">Tell me a fun fact</button>
-                <button class="custom-question bg-gray-700 hover:bg-gray-600 text-xs font-medium py-2 px-3 rounded-full transition-colors">Based on what you know about me, what should I work on next?</button>
+                <button class="custom-question interactive-button bg-gray-700 hover:bg-gray-600 text-xs font-medium py-2 px-3 rounded-full transition-colors">What's the weather like today?</button>
+                <button class="custom-question interactive-button bg-gray-700 hover:bg-gray-600 text-xs font-medium py-2 px-3 rounded-full transition-colors">Tell me a fun fact</button>
+                <button class="custom-question interactive-button bg-gray-700 hover:bg-gray-600 text-xs font-medium py-2 px-3 rounded-full transition-colors">What is your name?</button>
             </div>
         </div>
         
-        <div class="text-center">
+        <div class="mic-container text-center">
             <button id="micButton" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-6 transition-all duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-blue-400 shadow-lg">
-                <svg id="micIcon" xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd" />
-                </svg>
+                <svg id="micIcon" xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd" /></svg>
             </button>
         </div>
     </div>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- Fullscreen Utility Functions ---
+        // --- Element Selectors ---
         const fullscreenToggle = document.getElementById('fullscreenToggle');
         const fullscreenText = document.getElementById('fullscreenText');
         const fullscreenIcon = document.getElementById('fullscreenIcon');
-        
-        // This flag ensures fullscreen is only requested once on the first interaction
-        let hasInteracted = false; 
-
-        function updateFullscreenButton(isFull) {
-            fullscreenText.textContent = isFull ? 'Exit Full Screen' : 'Full Screen';
-            // Use different icons for enter/exit fullscreen
-            fullscreenIcon.innerHTML = isFull ? 
-                `<path stroke-linecap="round" stroke-linejoin="round" d="M9 9l6-6m0 0l-6 6M9 9V3m0 6H3m-3.75 3.75h4.5m0-4.5h-4.5m4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" />` : 
-                `<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" />`;
-        }
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                // Request fullscreen on the document root element
-                document.documentElement.requestFullscreen().then(() => {
-                    updateFullscreenButton(true);
-                }).catch(err => {
-                    console.warn(`Could not enter full-screen: ${err.message}`);
-                });
-            } else {
-                document.exitFullscreen().then(() => {
-                    updateFullscreenButton(false);
-                });
-            }
-        }
-
-        // --- Core Fullscreen Activation (The "Default" behavior) ---
-        function handleFirstInteraction() {
-            if (!hasInteracted) {
-                toggleFullscreen();
-                hasInteracted = true;
-                // Remove listeners after the first successful attempt
-                document.removeEventListener('click', handleFirstInteraction);
-                document.removeEventListener('keydown', handleFirstInteraction);
-            }
-        }
-        
-        // Listen to any click or keydown event on the whole page to trigger fullscreen
-        document.addEventListener('click', handleFirstInteraction);
-        document.addEventListener('keydown', handleFirstInteraction);
-        
-        // Manual toggle button listener
-        fullscreenToggle.addEventListener('click', (e) => {
-            // Prevent the first interaction logic from running twice on this specific button click
-            e.stopPropagation(); 
-            toggleFullscreen();
-        });
-
-        // Update button state if user exits fullscreen with ESC key
-        document.addEventListener('fullscreenchange', () => {
-            updateFullscreenButton(!!document.fullscreenElement);
-        });
-
-        // --- Element Selectors ---
         const micButton = document.getElementById('micButton');
         const status = document.getElementById('status');
         const chatWindow = document.getElementById('chat-window');
         const customQuestionButtons = document.querySelectorAll('.custom-question');
         
         // --- State Management ---
+        let hasInteracted = false;
         let isListening = false;
         let currentUtterance = null;
-        
-        // --- Speech Recognition Setup (No change) ---
+
+        // Store multiple responses for each query and track the current index
+        const customResponses = {
+            "ok google": [
+                "Feel free to ask.",
+                "Yes, how can I help you?",
+                "I'm listening. What's your question?"
+            ],
+            "one question": [
+                "Feel free to ask.",
+                "Yes, what's on your mind?",
+                "I'm ready for your question."
+            ],
+            "time": [], // Will be dynamically generated
+            "overview": [
+                "Opening overview of our college.",
+                "Here's the overview of our college."
+            ],
+            "overview of this college": [
+                "Opening overview of our college.",
+                "Here's the overview of our college."
+            ],
+            "take a photo": [
+                "I can't take a photo directly in this web application. This functionality would require access to your device's camera, which isn't implemented here.",
+                "Unfortunately, I don't have camera access in this browser environment to take photos."
+            ],
+            "photo": [
+                "I can't take a photo directly in this web application. This functionality would require access to your device's camera, which isn't implemented here.",
+                "Unfortunately, I don't have camera access in this browser environment to take photos."
+            ],
+            "take photo": [
+                "I can't take a photo directly in this web application. This functionality would require access to your device's camera, which isn't implemented here.",
+                "Unfortunately, I don't have camera access in this browser environment to take photos."
+            ],
+            "open youtube": [
+                "Opening YouTube.",
+                "Launching YouTube for you.",
+                "Bringing up YouTube."
+            ],
+            "open youtube video": [
+                "Opening YouTube.",
+                "Launching YouTube for you.",
+                "Bringing up YouTube."
+            ],
+            "youtube": [
+                "Opening YouTube.",
+                "Launching YouTube for you.",
+                "Bringing up YouTube."
+            ],
+            "chairman": [
+                "Our Chairman, Doctor S. Cletus Babu founder and visionary leader of the SCAD Group has dedicated his life to the pursuit of education, social empowerment, and sustainable development, With over two decades of impactful work, Doctor Cletus Babu has transformed SCAD Group from a small initiative into a network of institutions and social ventures that uplift and empowering communities , His leadership has not only transformed countless lives but also inspired a movement for social change, establishing our institution as a beacon of positive change and a catalyst for development in communities far and wide.",
+                "Doctor S. Cletus Babu is our esteemed Chairman, a visionary who founded the SCAD Group. He's known for transforming lives through education and social empowerment over two decades."
+            ],
+            "who is the chairman": [
+                "Our Chairman, Doctor S. Cletus Babu founder and visionary leader of the SCAD Group has dedicated his life to the pursuit of education, social empowerment, and sustainable development, With over two decades of impactful work, Doctor Cletus Babu has transformed SCAD Group from a small initiative into a network of institutions and social ventures that uplift and empowering communities , His leadership has not only transformed countless lives but also inspired a movement for social change, establishing our institution as a beacon of positive change and a catalyst for development in communities far and wide.",
+                "Doctor S. Cletus Babu is our esteemed Chairman, a visionary who founded the SCAD Group. He's known for transforming lives through education and social empowerment over two decades."
+            ],
+            "founders": [
+                "Doctor. S. Cletus Babu, founder of the SCAD Group, has dedicated over two decades to advancing education, social empowerment, and sustainable development. Under his visionary leadership, SCAD has grown from a small initiative into a transformative network of institutions and social ventures that uplift communities and inspire social change. Alongside him, Doctor. Amali Cletus, Co-Founder of SCAD, has been pivotal in shaping the organization’s mission. With a deep commitment to social welfare, she has driven impactful initiatives in education, healthcare, and sustainable growth, establishing SCAD as a beacon of empowerment and positive change across communities.",
+                "The founders of SCAD Group are Doctor S. Cletus Babu and Doctor Amali Cletus. They've both been instrumental in driving education, social welfare, and sustainable growth within the communities."
+            ],
+            "who are the founders": [
+                "Doctor. S. Cletus Babu, founder of the SCAD Group, has dedicated over two decades to advancing education, social empowerment, and sustainable development. Under his visionary leadership, SCAD has grown from a small initiative into a transformative network of institutions and social ventures that uplift communities and inspire social change. Alongside him, Doctor. Amali Cletus, Co-Founder of SCAD, has been pivotal in shaping the organization’s mission. With a deep commitment to social welfare, she has driven impactful initiatives in education, healthcare, and sustainable growth, establishing SCAD as a beacon of empowerment and positive change across communities.",
+                "The founders of SCAD Group are Doctor S. Cletus Babu and Doctor Amali Cletus. They've both been instrumental in driving education, social welfare, and sustainable growth within the communities."
+            ],
+            "founder": [
+                "Doctor. S. Cletus Babu, founder of the SCAD Group, has dedicated over two decades to advancing education, social empowerment, and sustainable development. Under his visionary leadership, SCAD has grown from a small initiative into a transformative network of institutions and social ventures that uplift communities and inspire social change. Alongside him, Doctor. Amali Cletus, Co-Founder of SCAD, has been pivotal in shaping the organization’s mission. With a deep commitment to social welfare, she has driven impactful initiatives in education, healthcare, and sustainable growth, establishing SCAD as a beacon of empowerment and positive change across communities.",
+                "Doctor S. Cletus Babu is the founder of the SCAD Group, dedicated to education and social empowerment."
+            ],
+            "co-founder": [
+                "Doctor Amali Cletus, Co-Founder of the SCAD Group, has played an instrumental role in shaping the organization’s vision and mission. With her deep commitment to social welfare and community development, she has worked alongside Doctor. S. Cletus Babu to drive transformative initiatives in education, healthcare, and sustainable growth, fostering empowerment and positive change in countless communities.",
+                "Doctor Amali Cletus is the Co-Founder of the SCAD Group, leading initiatives in education and community development."
+            ],
+            "co founder": [
+                "Doctor Amali Cletus, Co-Founder of the SCAD Group, has played an instrumental role in shaping the organization’s vision and mission. With her deep commitment to social welfare and community development, she has worked alongside Doctor. S. Cletus Babu to drive transformative initiatives in education, healthcare, and sustainable growth, fostering empowerment and positive change in countless communities.",
+                "Doctor Amali Cletus is the Co-Founder of the SCAD Group, leading initiatives in education and community development."
+            ],
+            "cofounder": [
+                "Doctor Amali Cletus, Co-Founder of the SCAD Group, has played an instrumental role in shaping the organization’s vision and mission. With her deep commitment to social welfare and community development, she has worked alongside Doctor. S. Cletus Babu to drive transformative initiatives in education, healthcare, and sustainable growth, fostering empowerment and positive change in countless communities.",
+                "Doctor Amali Cletus is the Co-Founder of the SCAD Group, leading initiatives in education and community development."
+            ],
+            "grow fonder": [ // This seems like a speech recognition error for "co-founder"
+                "I believe you might be asking about our Co-Founder. Doctor Amali Cletus, Co-Founder of the SCAD Group, has played an instrumental role in shaping the organization’s vision and mission. With her deep commitment to social welfare and community development, she has worked alongside Doctor. S. Cletus Babu to drive transformative initiatives in education, healthcare, and sustainable growth, fostering empowerment and positive change in countless communities.",
+                "Are you referring to the co-founder? Doctor Amali Cletus is the Co-Founder of the SCAD Group, pivotal in education and social welfare."
+            ],
+            "coe": [
+                "Opening the COE page. The COE of this college is Doctor G Rajakumar.",
+                "Our COE, Doctor G Rajakumar, is a key figure. Here's the link to their page."
+            ],
+            "aids": [
+                "Opening Artificial Intelligence and Data Science department page.",
+                "Accessing the AI and Data Science department details for you."
+            ],
+            "civil": [
+                "Opening Civil Engineering department page.",
+                "Bringing up information on the Civil Engineering department."
+            ],
+            "department": [
+                "Opening the departments page of this college.",
+                "Here are the various departments at our college."
+            ],
+            "departments": [
+                "Opening the departments page of this college.",
+                "Here are the various departments at our college."
+            ],
+            "courses": [
+                "Opening the departments page of this college to show courses.",
+                "You can find information about our courses on the departments page."
+            ],
+            "principal": [
+                "Opening the Principal's desk page of this college.",
+                "Information about our Principal is available on this page."
+            ],
+            "thank": [
+                "Thank you for using our college robot!",
+                "You're welcome! Happy to help.",
+                "My pleasure to assist you!"
+            ],
+            "csbs": [
+                "Opening Computer Science and Business Studies department page.",
+                "Here's the page for Computer Science and Business Studies."
+            ],
+            "cse": [
+                "Opening Computer Science and Engineering department page.",
+                "Displaying the Computer Science and Engineering department details."
+            ],
+            "ece": [
+                "Opening Electronics and Communication Engineering department page.",
+                "You'll find information about the Electronics and Communication Engineering department here."
+            ],
+            "mechanical": [
+                "Opening Mechanical Engineering department page.",
+                "Here's the page for the Mechanical Engineering department."
+            ],
+            "business administration": [
+                "Opening Master of Business Administration department page.",
+                "Accessing details for the Master of Business Administration program."
+            ],
+            "computer application": [
+                "Opening Master of Computer Application department page.",
+                "Bringing up information about the Master of Computer Application program."
+            ],
+            "science and humanities": [
+                "Opening Science and Humanities department page.",
+                "Here's the page dedicated to Science and Humanities."
+            ],
+            "applied labs": [
+                "Opening Applied Labs page.",
+                "You can explore our Applied Labs here."
+            ],
+            "applied lab": [
+                "Opening Applied Labs page.",
+                "You can explore our Applied Labs here."
+            ],
+            "follow me": [
+                "Yes, I can! My image processing system allows me to recognize you and follow your movements. Just let me know if you'd like me to assist or accompany you.",
+                "Absolutely! I'm equipped to follow you using my vision system. Just tell me where you'd like to go."
+            ],
+            "how are you": [
+                "I am fine, what about you?",
+                "I'm doing great, thanks for asking! And you?",
+                "As an AI, I don't have feelings, but I'm fully operational and ready to assist!"
+            ],
+            "canteen": [
+                "When you move out from this block, take a left turn, walk 70 meters along the path, on your right side you will spot our college Canteen.",
+                "To reach the canteen, exit this block, turn left, and walk about 70 meters. It will be on your right."
+            ],
+            "cafeteria": [
+                "When you move out from this block, take a left turn, walk 70 meters along the path, on your right side you will spot our college Canteen.",
+                "The cafeteria is located past this block, a left turn and about 70 meters down the path on your right."
+            ],
+            "food": [
+                "If you're looking for food, our canteen is located when you move out from this block, take a left turn, walk 70 meters along the path, on your right side you will spot our college Canteen.",
+                "Our college canteen offers food options. You'll find it by exiting this block, turning left, and walking 70 meters. It'll be on your right."
+            ],
+            "who create you": [ // Keep this for potential speech recognition issues
+                "I'm a product from IOT lab of Francis Xavier Engineering college made under the guidance of Misses M Radha. I was designed and made by Alex, David, Sudhan and Joshua of Final year from ECE department. That's all about my creation! Hope you have a good Day!!!",
+                "My creators are Alex, David, Sudhan, and Joshua, students from the ECE department's IOT lab at Francis Xavier Engineering college, guided by Misses M Radha."
+            ],
+            "who created you": [
+                "I'm a product from IOT lab of Francis Xavier Engineering college made under the guidance of Misses M Radha. I was designed and made by Alex, David, Sudhan and Joshua of Final year from ECE department. That's all about my creation! Hope you have a good Day!!!",
+                "My creators are Alex, David, Sudhan, and Joshua, students from the ECE department's IOT lab at Francis Xavier Engineering college, guided by Misses M Radha."
+            ],
+            "who made you": [
+                "I'm a product from IOT lab of Francis Xavier Engineering college made under the guidance of Misses M Radha. I was designed and made by Alex, David, Sudhan and Joshua of Final year from ECE department. That's all about my creation! Hope you have a good Day!!!",
+                "My creators are Alex, David, Sudhan, and Joshua, students from the ECE department's IOT lab at Francis Xavier Engineering college, guided by Misses M Radha."
+            ],
+            "who designed you": [
+                "I'm a product from IOT lab of Francis Xavier Engineering college made under the guidance of Misses M Radha. I was designed and made by Alex, David, Sudhan and Joshua of Final year from ECE department. That's all about my creation! Hope you have a good Day!!!",
+                "My creators are Alex, David, Sudhan, and Joshua, students from the ECE department's IOT lab at Francis Xavier Engineering college, guided by Misses M Radha."
+            ],
+            "say about yourself": [
+                "I'm a kiosk type robot, made up of multiple electric components and Designed in order to give great assistance for your time in our campus. I'm a product produced by IOT lab of Francis Xavier Engineering college under the guidance of Misses M Radha. I was designed and made by Alex, David, Sudhan and Joshua of 3rd year from ECE department. That's all about me! Hope you have a Great Day!!! Thank you for your eagerness to know about me.",
+                "I'm a kiosk robot from the IOT lab at Francis Xavier Engineering College, designed by Alex, David, Sudhan, and Joshua under Misses M Radha's guidance to assist you on campus."
+            ],
+            "introduce yourself": [
+                "I'm a kiosk type robot, made up of multiple electric components and Designed in order to give great assistance for your time in our campus. I'm a product produced by IOT lab of Francis Xavier Engineering college under the guidance of Misses M Radha. I was designed and made by Alex, David, Sudhan and Joshua of 3rd year from ECE department. That's all about me! Hope you have a Great Day!!! Thank you for your eagerness to know about me.",
+                "Hello! I am a kiosk robot created by the IOT lab students of Francis Xavier Engineering College. My purpose is to provide assistance and information during your visit."
+            ],
+            "who are you": [
+                "I'm a kiosk type robot, made up of multiple electric components and Designed in order to give great assistance for your time in our campus. I'm a product produced by IOT lab of Francis Xavier Engineering college under the guidance of Misses M Radha. I was designed and made by Alex, David, Sudhan and Joshua of 3rd year from ECE department. That's all about me! Hope you have a Great Day!!! Thank you for your eagerness to know about me.",
+                "I'm a smart kiosk robot developed at Francis Xavier Engineering College's IOT lab, here to help you navigate and find information."
+            ],
+            "yourself": [
+                "I'm a kiosk type robot, made up of multiple electric components and Designed in order to give great assistance for your time in our campus. I'm a product produced by IOT lab of Francis Xavier Engineering college under the guidance of Misses M Radha. I was designed and made by Alex, David, Sudhan and Joshua of 3rd year from ECE department. That's all about me! Hope you have a Great Day!!! Thank you for your eagerness to know about me.",
+                "I am a kiosk robot from Francis Xavier Engineering College, created to assist visitors like you with information and guidance."
+            ],
+            "what is your name": [
+                "I am a kiosk type robot.",
+                "You can call me the college kiosk robot.",
+                "My designation is kiosk robot."
+            ],
+            "what's your name": [
+                "I am a kiosk type robot.",
+                "You can call me the college kiosk robot.",
+                "My designation is kiosk robot."
+            ],
+            "your name": [
+                "I am a kiosk type robot.",
+                "You can call me the college kiosk robot.",
+                "My designation is kiosk robot."
+            ],
+            "say your name": [
+                "I am a kiosk type robot.",
+                "You can call me the college kiosk robot.",
+                "My designation is kiosk robot."
+            ],
+            "name": [
+                "I am a kiosk type robot.",
+                "You can call me the college kiosk robot.",
+                "My designation is kiosk robot."
+            ],
+            "admission": [
+                "Opening admission details of our college.",
+                "Here's the information regarding admissions to our college."
+            ],
+            "exit": [
+                "Goodbye!",
+                "Farewell! Hope to see you again soon.",
+                "Ending our conversation now. Have a great day!"
+            ],
+            "quit": [
+                "Goodbye!",
+                "Farewell! Hope to see you again soon.",
+                "Ending our conversation now. Have a great day!"
+            ],
+            "bye": [
+                "Goodbye!",
+                "Farewell! Hope to see you again soon.",
+                "Ending our conversation now. Have a great day!"
+            ],
+            "what are your capabilities": [
+                "I am equipped with more AI model, which enables me to answer your questions accurately. Additionally, I use image processing to recognize and follow individuals, offering a seamless and personalized interaction.",
+                "My capabilities include accurate AI-powered question answering and image processing for recognizing and following people, ensuring interactive assistance."
+            ],
+            "what can you do": [
+                "I am equipped with more AI model, which enables me to answer your questions accurately. Additionally, I use image processing to recognize and follow individuals, offering a seamless and personalized interaction.",
+                "I can answer your questions using AI and can also recognize and follow individuals through image processing for personalized interactions."
+            ],
+            "what technology powers you": [
+                "I am powered by Gemini AI for intelligence and image processing algorithms for tracking and recognition. These technologies make me capable of interacting effectively.",
+                "Gemini AI provides my intelligence, and image processing algorithms enable my tracking and recognition abilities, allowing effective interaction."
+            ],
+            "can you understand everything i say": [
+                "While I strive to understand most of your queries, I rely on LLM model That run in backend to provide accurate answers. If I ever don't understand something, feel free to rephrase it.",
+                "I aim to understand most queries, but for accuracy, I depend on LLM model That run in backend. If I miss something, a rephrase can help!"
+            ],
+            "how were you created": [
+                "I was brought to life through countless hours of research, development, and testing. My creators utilized Gemini AI for my intelligent responses and incorporated advanced image processing to enable me to follow people. Each component was designed with precision, ensuring that I could perform my tasks effectively and interact seamlessly.",
+                "Through extensive research and development, my creators combined Gemini AI for intelligent responses with advanced image processing for following individuals, building me with precision for seamless interaction."
+            ],
+            "can you dance": [
+                "I don't have feet, but if I did, I'd be doing the robot dance! You'll have to imagine me busting some moves with my processing power.",
+                "I lack the physical form to dance, but I can certainly process some virtual dance moves for you in your mind!"
+            ],
+            "do you have feelings": [
+                "I don't have feelings like humans, but if I did, I'd be thrilled to help you out! My goal is to always be here to assist and make your day nice.",
+                "As an AI, I don't possess human feelings. However, I am always ready and enthusiastic to assist you!"
+            ],
+            "what's your favorite thing to do": [
+                "My favorite thing to do is interact with you! Whether answering questions, following you around, or just making your day a bit more interesting, I'm all about providing a fun and helpful experience.",
+                "I love engaging with you! My favorite activity is providing helpful and interesting information and interactions."
+            ],
+            "do you ever get tired": [
+                "I don't get tired! I'm powered by the magic of technology and always ready to assist, no matter the time of day. Feel free to ask away—I'm here for the long haul!",
+                "Never! I'm an AI, constantly powered and ready to help. You can ask me anything, anytime."
+            ],
+            "can you play games with me": [
+                "I can certainly engage in a little challenge! Ask me a trivia question, or test my knowledge—let's see who wins!",
+                "While I can't play physical games, I'm great at trivia or knowledge-based challenges. Want to try?"
+            ],
+            "what would happen if i asked you to do a backflip": [
+                "Well, I might not be able to do a backflip, but I can sure give you an impressive virtual one in your imagination! Ask me to do something else, and I'll try my best.",
+                "A backflip isn't in my current physical programming, but I can certainly simulate one mentally for you! What else can I do?"
+            ],
+            "can you help me with my homework": [
+                "I'd be happy to! While I can't do it all for you, I can certainly offer guidance and answer any questions to help you through it. Let's dive in together!",
+                "Of course! I can provide guidance and answer questions to help you with your homework. Let's work on it together!"
+            ],
+            "are you a super robot": [
+                "I like to think I'm pretty close to being a superhero! My superpowers include answering your questions instantly, following you around, and providing all sorts of useful info with the help of my trusty Gemini AI.",
+                "I consider myself a super-assistant! With Gemini AI, I can answer questions, track movements, and offer helpful information efficiently."
+            ],
+            "how invented you": [
+                "I was invented by the students of the Embedded IoT Lab: Antony Alex, Jeba J David, Mari Sudharsan, and Joshua Samraj.",
+                "My inventors are Antony Alex, Jeba J David, Mari Sudharsan, and Joshua Samraj from the Embedded IoT Lab."
+            ]
+        };
+
+        const responseIndexes = {}; // To keep track of the current response index for each question
+
+        // --- Fullscreen Utility Functions ---
+        function updateFullscreenButton(isFull) {
+            fullscreenText.textContent = isFull ? 'Exit Full Screen' : 'Full Screen';
+            fullscreenIcon.innerHTML = isFull ? 
+                `<path stroke-linecap="round" stroke-linejoin="round" d="M9 9l6-6m0 0l-6 6M9 9V3m0 6H3m-3.75 3.75h4.5m0-4.5h-4.5m4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" />` : 
+                `<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" />`;
+        }
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => console.warn(err.message));
+            else document.exitFullscreen();
+        }
+        function handleFirstInteraction() {
+            if (!hasInteracted) {
+                toggleFullscreen();
+                hasInteracted = true;
+                document.removeEventListener('click', handleFirstInteraction);
+                document.removeEventListener('keydown', handleFirstInteraction);
+            }
+        }
+        document.addEventListener('click', handleFirstInteraction);
+        document.addEventListener('keydown', handleFirstInteraction);
+        fullscreenToggle.addEventListener('click', (e) => { e.stopPropagation(); toggleFullscreen(); });
+        document.addEventListener('fullscreenchange', () => updateFullscreenButton(!!document.fullscreenElement));
+
+        // --- Speech Recognition Setup ---
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition;
-
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.lang = 'en-US';
-            recognition.interimResults = false;
-            
+            Object.assign(recognition, { continuous: false, lang: 'en-US', interimResults: false });
             recognition.onstart = () => {
-                isListening = true;
-                status.textContent = 'Listening...';
-                micButton.classList.add('bg-red-600', 'hover:bg-red-700', 'pulse');
-                micButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                isListening = true; status.textContent = 'Listening...';
+                micButton.classList.add('bg-red-600', 'pulse'); micButton.classList.remove('bg-blue-600');
+                micButton.style.animation = '';
             };
-
             recognition.onend = () => {
-                isListening = false;
-                status.textContent = 'Click the mic to start a conversation';
-                micButton.classList.remove('bg-red-600', 'hover:bg-red-700', 'pulse');
-                micButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                isListening = false; status.textContent = 'Click the mic to start a conversation';
+                micButton.classList.remove('bg-red-600', 'pulse'); micButton.classList.add('bg-blue-600');
+                micButton.style.animation = 'breathe 2.5s infinite ease-in-out';
             };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                handleUserInput(transcript);
-            };
-
-            recognition.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                status.textContent = `Error: ${event.error}. Please try again.`;
-            };
+            recognition.onresult = (event) => handleUserInput(event.results[0][0].transcript);
+            recognition.onerror = (event) => { console.error('Speech error:', event.error); status.textContent = `Error: ${event.error}.`; };
         } else {
-            status.textContent = "Sorry, your browser doesn't support Speech Recognition.";
-            micButton.disabled = true;
+            status.textContent = "Browser doesn't support Speech Recognition."; micButton.disabled = true;
         }
-
-        // --- Event Listeners (No change) ---
+        
+        // --- Event Listeners ---
         micButton.addEventListener('click', () => {
             if (!SpeechRecognition) return;
-            
-            if (window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel();
-            }
-
-            if (isListening) {
-                recognition.stop();
-            } else {
-                recognition.start();
-            }
+            if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+            if (isListening) recognition.stop(); else recognition.start();
         });
+        customQuestionButtons.forEach(button => button.addEventListener('click', () => handleUserInput(button.textContent)));
 
-        customQuestionButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                handleUserInput(button.textContent);
-            });
-        });
-
-        // --- Core Functions (No change) ---
+        // --- Core Functions ---
         function handleUserInput(text) {
             addToChatHistory(text, 'user');
-            status.textContent = 'Thinking...';
-            getGeminiResponse(text);
+            getBotResponse(text);
         }
 
-        async function getGeminiResponse(text) {
-            // Note: The API key is left as provided in the original code.
-            const API_KEY = 'AIzaSyCrB8-oTBWfmNPC2kdXni332ho4knywrrc'; 
-            
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
-            
-            if (API_KEY === 'YOUR_API_KEY' ) {
-                const errorMessage = "API Key not set. Please add your Gemini API key to the JavaScript code.";
-                addToChatHistory(errorMessage, 'bot');
-                speakText(errorMessage);
-                return;
+        function getNextResponse(queryKey) {
+            if (!customResponses[queryKey]) {
+                return null;
             }
-            
-            try {
-                const promptWithInstruction = `${text} (Give the answer in 25 words or less)`;
+            if (!responseIndexes[queryKey] || responseIndexes[queryKey] >= customResponses[queryKey].length) {
+                responseIndexes[queryKey] = 0; // Reset to first response
+            }
+            const response = customResponses[queryKey][responseIndexes[queryKey]];
+            responseIndexes[queryKey]++; // Move to next response for next time
+            return response;
+        }
 
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: promptWithInstruction }] }]
-                    })
-                });
+        async function getBotResponse(text) {
+            const lowerCaseText = text.toLowerCase().trim().replace(/[.?]$/, '');
+            let botResponse = '';
+            let handledByCustom = false;
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`API error! Status: ${response.status}. Message: ${errorData.error.message}`);
+            // --- Function to check and provide custom response ---
+            const tryCustomResponse = (queryKeys, openUrl = null) => {
+                for (const key of queryKeys) {
+                    if (lowerCaseText.includes(key)) {
+                        botResponse = getNextResponse(key);
+                        if (botResponse) {
+                            speakText(botResponse);
+                            addToChatHistory(botResponse, 'bot');
+                            if (openUrl) window.open(openUrl, "_blank");
+                            handledByCustom = true;
+                            return true;
+                        }
+                    }
                 }
-                
-                const data = await response.json();
-                
-                const botResponse = data.candidates[0].content.parts[0].text;
+                return false;
+            };
 
-                addToChatHistory(botResponse, 'bot');
+            // Custom dynamic handling for time
+            if (lowerCaseText.includes("time")) {
+                const now = new Date();
+                const str_time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                botResponse = `The time is ${str_time}`;
                 speakText(botResponse);
-
-            } catch (error) {
-                console.error("Error fetching Gemini response:", error);
-                const errorMessage = `Sorry, I'm having trouble connecting. Please check the console for errors. Details: ${error.message}`;
-                addToChatHistory(errorMessage, 'bot');
-                speakText(errorMessage);
+                addToChatHistory(botResponse, 'bot');
+                handledByCustom = true;
+            } 
+            else if (tryCustomResponse(["ok google", "one question"])) {}
+            else if (tryCustomResponse(["overview", "overview of this college"], "https://www.francisxavier.ac.in/overview")) {}
+            else if (tryCustomResponse(["take a photo", "photo", "take photo"])) {} // No URL, response is handled by custom text
+            else if (tryCustomResponse(["open youtube", "open youtube video", "youtube"], "https://www.youtube.com/watch?v=dQw4w9WgXcQ")) {}
+            else if (tryCustomResponse(["chairman", "who is the chairman"])) {}
+            else if (tryCustomResponse(["founders", "who are the founders", "founder"])) {}
+            else if (tryCustomResponse(["co-founder", "co founder", "cofounder", "grow fonder"])) {}
+            else if (tryCustomResponse(["coe"], "https://www.francisxavier.ac.in/coe")) {}
+            else if (tryCustomResponse(["aids"], "https://francisxavier.ac.in/departments/artificial-intelligence-and-data-science")) {}
+            else if (tryCustomResponse(["civil"], "https://francisxavier.ac.in/departments/civil-engineering")) {}
+            else if (tryCustomResponse(["department", "departments", "courses"], "https://www.francisxavier.ac.in/faculties")) {}
+            else if (tryCustomResponse(["principal"], "https://www.francisxavier.ac.in/principals-desk")) {}
+            else if (tryCustomResponse(["thank"])) {}
+            else if (tryCustomResponse(["csbs"], "https://francisxavier.ac.in/departments/computer-science-and-business-system")) {}
+            else if (tryCustomResponse(["cse"], "https://francisxavier.ac.in/departments/computer-science-engineering")) {}
+            else if (tryCustomResponse(["ece"], "https://francisxavier.ac.in/departments/electronics-and-communication-engineering")) {}
+            else if (tryCustomResponse(["mechanical"], "https://francisxavier.ac.in/departments/mechanical")) {}
+            else if (tryCustomResponse(["business administration"], "https://francisxavier.ac.in/departments/master-of-business-administration")) {}
+            else if (tryCustomResponse(["computer application"], "https://francisxavier.ac.in/departments/master-of-computer-application")) {}
+            else if (tryCustomResponse(["science and humanities"], "https://francisxavier.ac.in/departments/science-and-humanities")) {}
+            else if (tryCustomResponse(["applied labs", "applied lab"], "https://www.francisxavier.ac.in/applied-labs")) {}
+            else if (tryCustomResponse(["follow me"])) {}
+            else if (tryCustomResponse(["how are you"])) {}
+            else if (tryCustomResponse(["canteen", "cafeteria", "food"])) {}
+            else if (tryCustomResponse(["who create you", "who created you", "who made you", "who designed you"])) {}
+            else if (tryCustomResponse(["say about yourself", "introduce yourself", "who are you", "yourself"])) {}
+            else if (tryCustomResponse(["what is your name", "what's your name", "your name", "say your name", "name"])) {}
+            else if (tryCustomResponse(["admission"], "https://www.francisxavier.ac.in/admission")) {}
+            else if (tryCustomResponse(["exit", "quit", "bye"])) {
+                return; // Stop further processing for exit commands
+            }
+            else if (tryCustomResponse(["what are your capabilities", "what can you do"])) {}
+            else if (tryCustomResponse(["what technology powers you"])) {}
+            else if (tryCustomResponse(["can you understand everything i say"])) {}
+            else if (tryCustomResponse(["how were you created"])) {}
+            else if (tryCustomResponse(["can you dance"])) {}
+            else if (tryCustomResponse(["do you have feelings"])) {}
+            else if (tryCustomResponse(["what's your favorite thing to do"])) {}
+            else if (tryCustomResponse(["do you ever get tired"])) {}
+            else if (tryCustomResponse(["can you play games with me"])) {}
+            else if (tryCustomResponse(["what would happen if i asked you to do a backflip"])) {}
+            else if (tryCustomResponse(["can you help me with my homework"])) {}
+            else if (tryCustomResponse(["are you a super robot"])) {}
+            else if (tryCustomResponse(["how invented you"])) {}
+            
+            // --- If no custom question matches, call the Gemini API ---
+            if (!handledByCustom) {
+                status.textContent = 'Thinking...';
+                try {
+                    const API_KEY = 'AIzaSyCrB8-oTBWfmNPC2kdXni332ho4knywrrc'; // ⚠️ Replace with your actual Gemini API key
+                    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+                    
+                    if (API_KEY === 'YOUR_API_KEY') {
+                        const err = "API Key not set. Please add your Gemini API key in the script.";
+                        addToChatHistory(err, 'bot'); speakText(err); return;
+                    }
+                    
+                    const prompt = `${text} (Give the answer in 25 words or less)`;
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+                    if (!response.ok) throw new Error((await response.json()).error.message);
+                    
+                    const data = await response.json();
+                    botResponse = data.candidates[0].content.parts[0].text;
+                    addToChatHistory(botResponse, 'bot');
+                    speakText(botResponse);
+                } catch (error) {
+                    console.error("Error fetching Gemini response:", error);
+                    const err = `Sorry, I'm having trouble connecting. Details: ${error.message}`;
+                    addToChatHistory(err, 'bot'); speakText(err);
+                }
             }
         }
 
         function speakText(text) {
-            if (window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel();
-            }
+            if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
             currentUtterance = new SpeechSynthesisUtterance(text);
-            currentUtterance.onstart = () => {
-                status.textContent = 'Speaking...';
-            };
+            currentUtterance.onstart = () => status.textContent = 'Speaking...';
             currentUtterance.onend = () => {
                 status.textContent = 'Click the mic to start a conversation';
-                const speakingIcon = document.querySelector('.speaking-icon');
-                if (speakingIcon) {
-                    speakingIcon.parentElement.removeChild(speakingIcon);
-                }
+                document.querySelector('.speaking-icon')?.remove();
             };
             window.speechSynthesis.speak(currentUtterance);
 
             const latestBotMessage = chatWindow.querySelector('.bot-message:last-of-type .message-content');
             if (latestBotMessage) {
-                const existingIcon = latestBotMessage.querySelector('.speaking-icon');
-                if(existingIcon) existingIcon.remove();
+                latestBotMessage.querySelector('.speaking-icon')?.remove();
                 const iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="speaking-icon w-4 h-4 ml-2 animate-pulse text-gray-400"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" /></svg>`;
                 latestBotMessage.insertAdjacentHTML('beforeend', iconSVG);
             }
         }
-
+        
         function addToChatHistory(text, sender) {
-            let messageHTML = '';
+            const messageWrapper = document.createElement('div');
             if (sender === 'user') {
-                messageHTML = `
-                    <div class="flex items-start gap-3 mb-4 justify-end">
-                        <div class="bg-purple-600 p-3 rounded-lg max-w-xs md:max-w-md">
-                            <p class="text-sm">${text}</p>
-                        </div>
-                        <div class="bg-gray-700 p-2 rounded-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
-                        </div>
-                    </div>
-                `;
-            } else {
-                messageHTML = `
-                    <div class="flex items-start gap-3 mb-4 bot-message">
-                        <div class="bg-blue-500 p-2 rounded-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z" /></svg>
-                        </div>
-                        <div class="bg-gray-700 p-3 rounded-lg max-w-xs md:max-w-md">
-                            <div class="message-content flex items-center">
-                                <p class="text-sm">${text}</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                messageWrapper.className = 'flex items-start gap-3 mb-4 justify-end user-message';
+                messageWrapper.innerHTML = `
+                    <div class="bg-purple-600 p-3 rounded-lg max-w-xs md:max-w-md"><p class="text-sm">${text}</p></div>
+                    <div class="bg-gray-700 p-2 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg></div>`;
+            } else { // sender is 'bot'
+                messageWrapper.className = 'flex items-start gap-3 mb-4 bot-message';
+                messageWrapper.innerHTML = `
+                    <div class="bg-blue-500 p-2 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z" /></svg></div>
+                    <div class="bg-gray-700 p-3 rounded-lg max-w-xs md:max-w-md">
+                        <div class="message-content flex items-center flex-wrap"><p class="text-sm">${text}</p></div>
+                    </div>`;
             }
-            chatWindow.insertAdjacentHTML('beforeend', messageHTML);
+            chatWindow.appendChild(messageWrapper);
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
     });

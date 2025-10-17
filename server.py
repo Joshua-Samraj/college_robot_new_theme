@@ -30,7 +30,6 @@ def blink():
     while True:
         try:
             eye_controll('B')
-            
             time.sleep(5) 
         except Exception as e:
             print(f"⚠️ Error in blink thread: {e}")
@@ -169,18 +168,17 @@ def handle_command():
     # --- SPECIAL CASE: Start tracking window ---
     if cmd.lower() == "follow_me":
         # Check if the required serial object is available for the blocking 'main' function
-        if ser_motor and ser_motor.is_open:
-            try:
-                # CRITICAL: Pass the active serial object 'ser_motor' to the main function.
-                # If main() is blocking, this API call will block until it returns.
-                main(ser_motor) 
-                print("🚀 Follow Me mode activated.")
-                return jsonify({"status": "success", "message": "Follow Me window launched."})
-            except Exception as e:
-                print(f"❌ Error launching follow_me.py: {e}")
-                return jsonify({"status": "error", "message": f"Failed to launch follow_me.py: {e}"}), 500
-        else:
-            return jsonify({"status": "error", "message": "Serial port for Motor control is not available to start Follow Me mode."}), 503
+        
+        try:
+            # CRITICAL: Pass the active serial object 'ser_motor' to the main function.
+            # If main() is blocking, this API call will block until it returns.
+            main() 
+            print("🚀 Follow Me mode activated.")
+            return jsonify({"status": "success", "message": "Follow Me window launched."})
+        except Exception as e:
+            print(f"❌ Error launching follow_me.py: {e}")
+            return jsonify({"status": "error", "message": f"Failed to launch follow_me.py: {e}"}), 500
+    
 
     # --- Normal control command handling (e.g., 's' for Start/Stop) ---
     if cmd not in CONTROL_MAP:
