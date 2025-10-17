@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROBOT INTERFACE (Web Mock)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<style>
+    
+</style>
+<body>
+    <div class="background-overlay"></div>
+
+    <div class="content-wrapper">
+
+        <div class="main-grid-container">
+            <button class="ctk-button" data-action="follow-me">Follow Me</button>
+            <button class="ctk-button" data-action="voice">Voice</button>
+            <button class="ctk-button" data-action="tracking">Object Tracking</button>
+            <button class="ctk-button" data-action="touch-control">Touch Control</button>
+        </div>
+
+        <div class="bottom-bar-container">
+            <div class="bottom-frame">
+                <button class="ctk-button speak-toggle" 
+                        data-text="Welcome to Francis Xavier Engineering College. I am thrilled to welcome you to our 25th Annual Day celebration, our Silver Jubilee Year!"
+                        data-original-text="Intro"
+                        data-speaking="false">
+                    Intro
+                </button>
+                
+                <button class="ctk-button exit-button" data-action="exit">Exit</button>
+        
+                <button class="ctk-button speak-toggle" 
+                        data-text="Follow me. I'll lead you to the refreshment area."
+                        data-original-text="Refreshment"
+                        data-speaking="false">
+                    Refreshment
+                </button>
+                <button class="ctk-button fullscreen-toggle" data-action="fullscreen">Full Screen</button>
+            </div>
+        </div>
+
+    </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const allButtons = document.querySelectorAll('.ctk-button');
+    const speakButtons = document.querySelectorAll('.speak-toggle');
+    const fullscreenButton = document.querySelector('.fullscreen-toggle');
+    let currentUtterance = null;
+
+    const API_URL = "http://127.0.0.1:5000/api/command";
+
+    // Reset all speaking buttons
+    const resetAllSpeakButtons = () => {
+        speakButtons.forEach(btn => {
+            btn.textContent = btn.getAttribute('data-original-text');
+            btn.classList.remove('speaking');
+            btn.setAttribute('data-speaking', 'false');
+        });
+        currentUtterance = null;
+    };
+
+    // Speech function
+    function speakText(text, onEndCallback) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0;
+            utterance.volume = 1.0;
+
+            const voices = window.speechSynthesis.getVoices();
+            const femaleVoice = voices.find(voice =>
+                voice.name.toLowerCase().includes('female') ||
+                voice.name.toLowerCase().includes('zira')
+            );
+            if (femaleVoice) utterance.voice = femaleVoice;
+
+            utterance.onend = onEndCallback;
+            window.speechSynthesis.speak(utterance);
+            return utterance;
+        } else {
+            alert("Speaking: " + text);
+            setTimeout(onEndCallback, 2000);
+            return null;
+        }
+    }
+
+    // --- Send command to Flask API ---
+    async function sendCommandToAPI(command) {
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ command })
+            });
+
+            const result = await response.json();
+            console.log("🔗 API Response:", result);
+
+            if (result.status === "success") {
+                alert("✅ " + result.message);
+            } else {
+                alert("⚠️ " + result.message);
+            }
+        } catch (err) {
+            console.error("❌ API Error:", err);
+            alert("⚠️ Failed to reach Flask API. Make sure it's running.");
+        }
+    }
+
+    // --- Fullscreen Toggle Function ---
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().then(() => {
+                fullscreenButton.textContent = "Exit Fullscreen";
+            }).catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                alert("⚠️ Fullscreen mode failed. The browser may not support it.");
+            });
+        } else {
+            document.exitFullscreen().then(() => {
+                fullscreenButton.textContent = "Full Screen";
+            });
+        }
+    };
+
+    // --- General Button Click Handlers ---
+    allButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            if (button.classList.contains('speak-toggle')) return;
+            
+            const action = button.getAttribute('data-action');
+            console.log(`Action: ${action} triggered!`);
+
+            switch (action) {
+                case 'follow-me':
+                    sendCommandToAPI("follow_me");
+                    break;
+                case 'voice':
+                    window.location.href = 'chat.html';
+                    break;
+                case 'tracking':
+                    alert("Starting 'Object Tracking'...");
+                    break;
+                case 'touch-control':
+                    window.location.href = 'touch_pad.html';
+                    break;
+                case 'exit':
+                    alert("Exiting application. Goodbye!");
+                    break;
+                case 'fullscreen':
+                    toggleFullscreen();
+                    break;
+            }
+        });
+    });
+    
+    // --- Speech Toggle Logic ---
+    speakButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const isCurrentlySpeaking = button.getAttribute('data-speaking') === 'true';
+            if (isCurrentlySpeaking) {
+                window.speechSynthesis.cancel();
+                resetAllSpeakButtons();
+            } else {
+                resetAllSpeakButtons();
+                button.textContent = "Stop";
+                button.classList.add('speaking');
+                button.setAttribute('data-speaking', 'true');
+                const speechText = button.getAttribute('data-text');
+                currentUtterance = speakText(speechText, resetAllSpeakButtons);
+            }
+        });
+    });
+
+    window.addEventListener('beforeunload', () => {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    });
+});
+</script>
+
+</body>
+</html>

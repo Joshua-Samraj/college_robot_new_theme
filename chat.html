@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Voice Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .pulse {
+            animation: pulse-animation 1.5s infinite;
+        }
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 25px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        #chat-window::-webkit-scrollbar {
+            width: 6px;
+        }
+        #chat-window::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        #chat-window::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 3px;
+        }
+        #chat-window::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex flex-col h-screen">
+
+    <div class="container mx-auto p-4 flex-grow flex flex-col max-w-3xl">
+        <header class="relative text-center mb-4 p-4">
+            <a href="index.html" class="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-sm font-medium py-2 px-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                Back
+            </a>
+
+            <button id="fullscreenToggle" class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-sm font-medium py-2 px-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
+                <span id="fullscreenText">Full Screen</span>
+                <svg id="fullscreenIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" />
+                </svg>
+            </button>
+            
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+                Gemini Voice Assistant
+            </h1>
+            <p id="status" class="text-gray-400 mt-2 h-6 transition-all">Click the mic to start a conversation</p>
+        </header>
+
+        <div id="chat-window" class="flex-1 bg-gray-800 rounded-lg shadow-inner p-4 overflow-y-auto mb-4 border border-gray-700">
+            <div class="flex items-start gap-3 mb-4">
+                <div class="bg-blue-500 p-2 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z" />
+                    </svg>
+                </div>
+                <div class="bg-gray-700 p-3 rounded-lg max-w-xs md:max-w-md">
+                    <p class="text-sm">Hello! How can I help you today?</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h3 class="text-sm font-semibold text-gray-400 mb-2 text-center">Or try one of these:</h3>
+            <div class="flex flex-wrap justify-center gap-2">
+                <button class="custom-question bg-gray-700 hover:bg-gray-600 text-xs font-medium py-2 px-3 rounded-full transition-colors">What's the weather like today?</button>
+                <button class="custom-question bg-gray-700 hover:bg-gray-600 text-xs font-medium py-2 px-3 rounded-full transition-colors">Tell me a fun fact</button>
+                <button class="custom-question bg-gray-700 hover:bg-gray-600 text-xs font-medium py-2 px-3 rounded-full transition-colors">Based on what you know about me, what should I work on next?</button>
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <button id="micButton" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-6 transition-all duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-blue-400 shadow-lg">
+                <svg id="micIcon" xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
+    </div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Fullscreen Utility Functions ---
+        const fullscreenToggle = document.getElementById('fullscreenToggle');
+        const fullscreenText = document.getElementById('fullscreenText');
+        const fullscreenIcon = document.getElementById('fullscreenIcon');
+        
+        // This flag ensures fullscreen is only requested once on the first interaction
+        let hasInteracted = false; 
+
+        function updateFullscreenButton(isFull) {
+            fullscreenText.textContent = isFull ? 'Exit Full Screen' : 'Full Screen';
+            // Use different icons for enter/exit fullscreen
+            fullscreenIcon.innerHTML = isFull ? 
+                `<path stroke-linecap="round" stroke-linejoin="round" d="M9 9l6-6m0 0l-6 6M9 9V3m0 6H3m-3.75 3.75h4.5m0-4.5h-4.5m4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" />` : 
+                `<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" />`;
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                // Request fullscreen on the document root element
+                document.documentElement.requestFullscreen().then(() => {
+                    updateFullscreenButton(true);
+                }).catch(err => {
+                    console.warn(`Could not enter full-screen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    updateFullscreenButton(false);
+                });
+            }
+        }
+
+        // --- Core Fullscreen Activation (The "Default" behavior) ---
+        function handleFirstInteraction() {
+            if (!hasInteracted) {
+                toggleFullscreen();
+                hasInteracted = true;
+                // Remove listeners after the first successful attempt
+                document.removeEventListener('click', handleFirstInteraction);
+                document.removeEventListener('keydown', handleFirstInteraction);
+            }
+        }
+        
+        // Listen to any click or keydown event on the whole page to trigger fullscreen
+        document.addEventListener('click', handleFirstInteraction);
+        document.addEventListener('keydown', handleFirstInteraction);
+        
+        // Manual toggle button listener
+        fullscreenToggle.addEventListener('click', (e) => {
+            // Prevent the first interaction logic from running twice on this specific button click
+            e.stopPropagation(); 
+            toggleFullscreen();
+        });
+
+        // Update button state if user exits fullscreen with ESC key
+        document.addEventListener('fullscreenchange', () => {
+            updateFullscreenButton(!!document.fullscreenElement);
+        });
+
+        // --- Element Selectors ---
+        const micButton = document.getElementById('micButton');
+        const status = document.getElementById('status');
+        const chatWindow = document.getElementById('chat-window');
+        const customQuestionButtons = document.querySelectorAll('.custom-question');
+        
+        // --- State Management ---
+        let isListening = false;
+        let currentUtterance = null;
+        
+        // --- Speech Recognition Setup (No change) ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            
+            recognition.onstart = () => {
+                isListening = true;
+                status.textContent = 'Listening...';
+                micButton.classList.add('bg-red-600', 'hover:bg-red-700', 'pulse');
+                micButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                status.textContent = 'Click the mic to start a conversation';
+                micButton.classList.remove('bg-red-600', 'hover:bg-red-700', 'pulse');
+                micButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                handleUserInput(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                status.textContent = `Error: ${event.error}. Please try again.`;
+            };
+        } else {
+            status.textContent = "Sorry, your browser doesn't support Speech Recognition.";
+            micButton.disabled = true;
+        }
+
+        // --- Event Listeners (No change) ---
+        micButton.addEventListener('click', () => {
+            if (!SpeechRecognition) return;
+            
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+
+        customQuestionButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                handleUserInput(button.textContent);
+            });
+        });
+
+        // --- Core Functions (No change) ---
+        function handleUserInput(text) {
+            addToChatHistory(text, 'user');
+            status.textContent = 'Thinking...';
+            getGeminiResponse(text);
+        }
+
+        async function getGeminiResponse(text) {
+            // Note: The API key is left as provided in the original code.
+            const API_KEY = 'AIzaSyCrB8-oTBWfmNPC2kdXni332ho4knywrrc'; 
+            
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+            
+            if (API_KEY === 'YOUR_API_KEY' ) {
+                const errorMessage = "API Key not set. Please add your Gemini API key to the JavaScript code.";
+                addToChatHistory(errorMessage, 'bot');
+                speakText(errorMessage);
+                return;
+            }
+            
+            try {
+                const promptWithInstruction = `${text} (Give the answer in 25 words or less)`;
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: promptWithInstruction }] }]
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API error! Status: ${response.status}. Message: ${errorData.error.message}`);
+                }
+                
+                const data = await response.json();
+                
+                const botResponse = data.candidates[0].content.parts[0].text;
+
+                addToChatHistory(botResponse, 'bot');
+                speakText(botResponse);
+
+            } catch (error) {
+                console.error("Error fetching Gemini response:", error);
+                const errorMessage = `Sorry, I'm having trouble connecting. Please check the console for errors. Details: ${error.message}`;
+                addToChatHistory(errorMessage, 'bot');
+                speakText(errorMessage);
+            }
+        }
+
+        function speakText(text) {
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.onstart = () => {
+                status.textContent = 'Speaking...';
+            };
+            currentUtterance.onend = () => {
+                status.textContent = 'Click the mic to start a conversation';
+                const speakingIcon = document.querySelector('.speaking-icon');
+                if (speakingIcon) {
+                    speakingIcon.parentElement.removeChild(speakingIcon);
+                }
+            };
+            window.speechSynthesis.speak(currentUtterance);
+
+            const latestBotMessage = chatWindow.querySelector('.bot-message:last-of-type .message-content');
+            if (latestBotMessage) {
+                const existingIcon = latestBotMessage.querySelector('.speaking-icon');
+                if(existingIcon) existingIcon.remove();
+                const iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="speaking-icon w-4 h-4 ml-2 animate-pulse text-gray-400"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" /></svg>`;
+                latestBotMessage.insertAdjacentHTML('beforeend', iconSVG);
+            }
+        }
+
+        function addToChatHistory(text, sender) {
+            let messageHTML = '';
+            if (sender === 'user') {
+                messageHTML = `
+                    <div class="flex items-start gap-3 mb-4 justify-end">
+                        <div class="bg-purple-600 p-3 rounded-lg max-w-xs md:max-w-md">
+                            <p class="text-sm">${text}</p>
+                        </div>
+                        <div class="bg-gray-700 p-2 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
+                        </div>
+                    </div>
+                `;
+            } else {
+                messageHTML = `
+                    <div class="flex items-start gap-3 mb-4 bot-message">
+                        <div class="bg-blue-500 p-2 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z" /></svg>
+                        </div>
+                        <div class="bg-gray-700 p-3 rounded-lg max-w-xs md:max-w-md">
+                            <div class="message-content flex items-center">
+                                <p class="text-sm">${text}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            chatWindow.insertAdjacentHTML('beforeend', messageHTML);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamepad Remote Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #1a1a1d;
+            --primary-color: #950740;
+            --secondary-color: #c3073f;
+            --accent-color: #6f2232;
+            --text-color: #f5f5f5;
+            --shadow-color: rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none; /* Prevents text selection on rapid clicks */
+        }
+        
+        /* General button styling for navigation/toggles */
+        .nav-button {
+            position: absolute;
+            top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--accent-color);
+            color: var(--text-color);
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .nav-button:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .back-button {
+            left: 20px;
+        }
+
+        .fullscreen-toggle-button {
+            right: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .nav-button {
+                top: 10px;
+            }
+            .back-button {
+                left: 10px;
+            }
+            .fullscreen-toggle-button {
+                right: 10px;
+            }
+        }
+
+        .gamepad-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 50px;
+            padding: 40px;
+            background: #2c2c2e;
+            border-radius: 30px;
+            box-shadow: 0 15px 30px var(--shadow-color), inset 0 0 15px #111;
+        }
+
+        /* Container for the D-pad and its side buttons */
+        .d-pad-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Styling for the new Left/Right Most buttons */
+        .side-btn {
+            width: 50px;
+            height: 100px;
+            background-color: var(--accent-color);
+            border: 2px solid #111;
+            border-radius: 10px;
+            font-size: 24px;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--text-color);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .side-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .side-btn:active {
+            transform: scale(0.95);
+        }
+
+        .d-pad {
+            position: relative;
+            width: 150px;
+            height: 150px;
+        }
+
+        .d-pad-btn {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: var(--accent-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            border: 2px solid #111;
+        }
+        
+        .d-pad-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .d-pad-btn:active {
+            transform: scale(0.95);
+        }
+
+        #up { top: 0; left: 50px; border-radius: 10px 10px 0 0; }
+        #down { bottom: 0; left: 50px; border-radius: 0 0 10px 10px; }
+        #left { top: 50px; left: 0; border-radius: 10px 0 0 10px; }
+        #right { top: 50px; right: 0; border-radius: 0 10px 10px 0; }
+        #center { 
+            top: 50px; 
+            left: 50px; 
+            background-color: #111; 
+            border: none;
+            width: 50px;
+            height: 50px;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .action-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 5px 10px var(--shadow-color);
+        }
+
+        .action-btn:active {
+            transform: translateY(2px) scale(0.98);
+            box-shadow: 0 2px 5px var(--shadow-color);
+        }
+
+        #btn-1 { background-color: #4CAF50; color: white; } /* Green */
+        #btn-2 { background-color: #F44336; color: white; } /* Red */
+        #btn-3 { background-color: #FFC107; color: black; } /* Amber */
+        
+        #btn-1:hover { background-color: #5cb85c; }
+        #btn-2:hover { background-color: #d9534f; }
+        #btn-3:hover { background-color: #ffce3a; }
+
+
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .control-btn {
+            width: 120px;
+            padding: 12px;
+            border-radius: 25px;
+            border: none;
+            font-size: 14px;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        #start { background-color: #28a745; color: white; }
+        #stop { background-color: #dc3545; color: white; }
+        
+        #start:hover { background-color: #218838; }
+        #stop:hover { background-color: #c82333; }
+
+        #command-display {
+            margin-top: 30px;
+            font-size: 24px;
+            background-color: #111;
+            padding: 15px 30px;
+            border-radius: 10px;
+            border: 2px solid var(--primary-color);
+            min-width: 250px;
+            text-align: center;
+            height: 40px;
+            line-height: 40px;
+        }
+        
+        .command-text {
+             color: #00ff00; /* Bright green for a terminal look */
+             font-weight: bold;
+        }
+
+        /* Media queries for larger displays */
+        @media (min-width: 1000px) {
+            .d-pad {
+                width: 210px;
+                height: 210px;
+            }
+
+            .d-pad-btn {
+                width: 70px;
+                height: 70px;
+                font-size: 24px;
+            }
+
+            #up { top: 0; left: 70px; }
+            #down { bottom: 0; left: 70px; }
+            #left { top: 70px; left: 0; }
+            #right { top: 70px; right: 0; }
+            #center { top: 70px; left: 70px; width: 70px; height: 70px; }
+
+            .action-btn {
+                width: 80px;
+                height: 80px;
+                font-size: 20px;
+            }
+
+            .action-buttons {
+                gap: 20px;
+            }
+
+            .control-btn {
+                width: 150px;
+                padding: 15px;
+                font-size: 16px;
+            }
+            
+            .control-buttons {
+                gap: 20px;
+            }
+
+            .gamepad-container {
+                gap: 70px;
+            }
+
+            #command-display {
+                font-size: 28px;
+                min-width: 300px;
+                height: 50px;
+                line-height: 50px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .gamepad-container {
+                flex-direction: column;
+                gap: 30px;
+                padding: 20px;
+            }
+            .control-buttons {
+                flex-direction: row;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="nav-button back-button">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        Back
+    </a>
+    
+    <!-- NEW: Fullscreen Toggle Button -->
+    <button id="fullscreenToggle" class="nav-button fullscreen-toggle-button">
+        <span id="fullscreenText">Full Screen</span>
+        <svg id="fullscreenIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" />
+        </svg>
+    </button>
+    
+    <div class="gamepad-container">
+        <!-- D-pad area -->
+        <div class="d-pad-area">
+            <button id="left-most" data-command="1" class="side-btn">«</button>
+            <div class="d-pad">
+                <div id="up" data-command="3" class="d-pad-btn">▲</div>
+                <div id="down" data-command="R" class="d-pad-btn">▼</div>
+                <div id="left" data-command="2" class="d-pad-btn">◀</div>
+                <div id="right" data-command="4" class="d-pad-btn">▶</div>
+                <!-- <div id="center"></div> -->
+            </div>
+            <button id="right-most" data-command="5" class="side-btn">»</button>
+        </div>
+
+        <div class="action-buttons">
+            <button id="btn-1" data-command="H" class="action-btn">Heart</button>
+            <button id="btn-2" data-command="B" class="action-btn">Blink</button>
+            <button id="btn-3" data-command="r" class="action-btn">ran</button>
+        </div>
+
+        <div class="control-buttons">
+            <button id="start" class="control-btn">Start</button>
+            <button id="stop" class="control-btn">Stop</button>
+        </div>
+    </div>
+
+    <div id="command-display">
+        Last Command: <span id="last-command" class="command-text">None</span>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Fullscreen Utility Functions (Unchanged) ---
+        const fullscreenToggle = document.getElementById('fullscreenToggle');
+        const fullscreenText = document.getElementById('fullscreenText');
+        const fullscreenIcon = document.getElementById('fullscreenIcon');
+        let hasInteracted = false; 
+
+        function updateFullscreenButton(isFull) {
+            fullscreenText.textContent = isFull ? 'Exit Full Screen' : 'Full Screen';
+            // Use different icons for enter/exit fullscreen
+            fullscreenIcon.innerHTML = isFull ? 
+                `<path stroke-linecap="round" stroke-linejoin="round" d="M9 9l6-6m0 0l-6 6M9 9V3m0 6H3m-3.75 3.75h4.5m0-4.5h-4.5m4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" />` : 
+                `<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15.75M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 16.5v-4.5m0 4.5h-4.5m4.5 0L15 15.75" />`;
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => {
+                    updateFullscreenButton(true);
+                }).catch(err => {
+                    console.warn(`Could not enter full-screen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    updateFullscreenButton(false);
+                });
+            }
+        }
+
+        function handleFirstInteraction() {
+            if (!hasInteracted) {
+                toggleFullscreen();
+                hasInteracted = true;
+                document.removeEventListener('mousedown', handleFirstInteraction);
+                document.removeEventListener('touchstart', handleFirstInteraction);
+            }
+        }
+        
+        document.addEventListener('mousedown', handleFirstInteraction);
+        document.addEventListener('touchstart', handleFirstInteraction);
+        
+        fullscreenToggle.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            toggleFullscreen();
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            updateFullscreenButton(!!document.fullscreenElement);
+        });
+
+        // --- Gamepad Control Logic ---
+        const commandDisplay = document.getElementById('last-command');
+        let previousCommand = null;
+        let controlEnabled = false;
+        // Base API URL - the endpoint will be appended to this.
+        const BASE_URL = 'http://127.0.0.1:5000'; 
+
+        /**
+         * Determines the API endpoint based on the button's ID/purpose and sends the command.
+         * Motor Commands: D-Pad, Left-Most, Right-Most (1, 2, 3, 4, 5)
+         * Face/Emotion Commands: Action Buttons (H, B, r)
+         * Control Commands: Start/Stop (s) - Routed to the default command endpoint
+         */
+        async function sendCommand(command) {
+            if (command === previousCommand) return; // Prevent spamming the same command
+
+            let endpoint;
+            
+            // Motor Commands: '1', '2', '3', '4', '5', 'r' (if 'r' is a run command on the motor)
+            if (['1', '2', '3', '4', '5','R'].includes(command) ) {
+                endpoint = '/api/motor/command';
+            // Emotion/Face Commands: 'H', 'B', 'r'
+            } else if (['H', 'B','r'].includes(command) ) {
+                endpoint = '/api/face/command';
+            // Control Commands: 's' (Start/Stop) - Routed to the default general command
+            } else if (command === 's') {
+                 endpoint = '/api/command'; 
+            } else {
+                console.warn(`Unknown command type for command: ${command}`);
+                return;
+            }
+
+            const API_URL = BASE_URL + endpoint;
+
+            console.log(`Sending command: ${command} to ${endpoint}`);
+            commandDisplay.textContent = command.toString().toUpperCase();
+            previousCommand = command;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ command: command })
+                });
+
+                if (!response.ok) {
+                    const errorResult = await response.json();
+                    console.error('API Error:', errorResult.message);
+                    commandDisplay.style.color = "#dc3545"; // Red
+                } else {
+                    const successResult = await response.json();
+                    console.log('API Success:', successResult.message);
+                    commandDisplay.style.color = "#00ff00"; // Green
+                }
+
+            } catch (error) {
+                console.error('Network Error:', error);
+                commandDisplay.textContent = "CONNECTION ERROR";
+                commandDisplay.style.color = "#dc3545"; // Red
+            }
+        }
+        
+        function resetPreviousCommand() {
+            previousCommand = null;
+        }
+
+        // --- Control Button Listeners ---
+        document.getElementById('start').addEventListener('click', () => {
+            controlEnabled = true;
+            console.log("Control enabled!");
+            document.body.style.border = "5px solid #28a745"; // Visual feedback
+            sendCommand('s'); 
+            resetPreviousCommand(); 
+        });
+
+        document.getElementById('stop').addEventListener('click', () => {
+            controlEnabled = false;
+            console.log("Control stopped!");
+            document.body.style.border = "none";
+            sendCommand('s'); 
+            resetPreviousCommand(); 
+        });
+
+        // --- D-Pad and Action Button Listeners ---
+        const commandButtons = document.querySelectorAll('[data-command]');
+        
+        commandButtons.forEach(button => {
+            const sendBtnCommand = () => {
+                if (controlEnabled) {
+                    const command = button.getAttribute('data-command');
+                    sendCommand(command);
+                } else {
+                    console.warn("Control is not enabled. Press 'Start' first.");
+                    // Flash the display to indicate disabled state
+                    const originalText = commandDisplay.textContent;
+                    commandDisplay.textContent = "DISABLED";
+                    commandDisplay.style.color = "#dc3545";
+                    setTimeout(() => {
+                        commandDisplay.textContent = originalText;
+                        commandDisplay.style.color = "#00ff00";
+                    }, 500);
+                }
+            };
+
+            // Use mousedown/touchstart for immediate and repetitive commands
+            button.addEventListener('mousedown', sendBtnCommand);
+            button.addEventListener('touchstart', (e) => {
+                e.preventDefault(); 
+                sendBtnCommand();
+            });
+
+            // Reset previous command on mouseup/touchend to allow re-sending the same command after release
+            const resetCommandOnRelease = () => resetPreviousCommand();
+            button.addEventListener('mouseup', resetCommandOnRelease);
+            button.addEventListener('touchend', resetCommandOnRelease);
+        });
+    });
+</script>
+</body>
+</html>

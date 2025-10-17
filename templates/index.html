@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Automatic Webcam Processing</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background-color: #f0f2f5; }
+        h1, h2 { color: #333; }
+        #container { display: flex; gap: 30px; margin-top: 20px; }
+        .video-box { padding: 10px; border: 1px solid #ccc; border-radius: 8px; background-color: white; }
+        video, img { display: block; border-radius: 4px; }
+        #status { margin-top: 20px; font-size: 18px; color: #555; }
+    </style>
+</head>
+<body>
+    <h1>Automatic Image Processing with Flask</h1>
+    <div id="status">Starting webcam...</div>
+    
+    <div id="container">
+        <div class="video-box">
+            <h2>Live Camera</h2>
+            <video id="video" width="640" height="480" autoplay muted></video>
+        </div>
+        <div class="video-box">
+            <h2>Processed Image</h2>
+            <img id="processed-image" width="640" height="480" src="" alt="Processed Image">
+        </div>
+    </div>
+
+    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const processedImage = document.getElementById('processed-image');
+    const statusText = document.getElementById('status');
+
+    // This flag prevents sending a new image while the previous one is still processing
+    let isProcessing = false;
+
+    // This function captures a frame, sends it to the server, and displays the result
+    const sendFrameForProcessing = () => {
+        if (isProcessing) {
+            return; // Skip this frame if we're still waiting for the last one
+        }
+        isProcessing = true;
+
+        // Draw the current video frame onto the hidden canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageDataUrl = canvas.toDataURL('image/jpeg');
+
+        // Send the image data to the Flask API
+        fetch('/process-image', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ image: imageDataUrl }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Display the processed image returned from the server
+            processedImage.src = data.processed_image;
+        })
+        .catch(error => {
+            console.error('Error processing image:', error);
+        })
+        .finally(() => {
+            // Reset the flag so the next frame can be sent
+            isProcessing = false;
+        });
+    };
+
+    // Access the Webcam
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+                statusText.textContent = "Processing... (10 frames per second)";
+                // Start sending frames automatically every 100 milliseconds (10 FPS)
+                setInterval(sendFrameForProcessing, 100);
+            };
+        })
+        .catch(err => {
+            console.error("Error accessing the webcam: ", err);
+            statusText.textContent = "Error: Could not access webcam. Please grant permission and refresh.";
+        });
+</script>
+</body>
+</html>
